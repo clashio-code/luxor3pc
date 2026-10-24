@@ -1,0 +1,24 @@
+
+name: Build Luxor 3 ARM64 Prototype
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libsdl2-dev libgles2-mesa-dev
+
+      - name: Configure
+        run: cmake -S . -B build
+
+      - name: Compile
+        run: cmake --build build --parallel 2
