@@ -1,0 +1,39 @@
+name: Build Luxor 3 native track prototype (ARM64)
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**.c'
+      - 'CMakeLists.txt'
+      - '.github/workflows/build-arm64.yml'
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable ARM64 packages
+        run: |
+          sudo dpkg --add-architecture arm64
+          sudo sed -i 's/^URIs: http/URIs: http/' /etc/apt/sources.list.d/ubuntu.sources || true
+          sudo apt-get update
+          sudo apt-get install -y cmake pkg-config gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libsdl2-dev:arm64 libgles2-mesa-dev:arm64
+      - name: Configure and build
+        run: |
+          cmake -S . -B build-arm64 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc
+          cmake --build build-arm64 --parallel 2
+          file build-arm64/luxor3_native_track
+      - name: Package test build
+        run: |
+          mkdir -p package/assets
+          cp build-arm64/luxor3_native_track package/
+          cp run.sh package/
+          cp assets/path.LX3TRK package/assets/
+          cp README.md package/
+          tar -czf Luxor3_Native_Track_ARM64.tar.gz -C package .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Luxor3_Native_Track_ARM64
+          path: Luxor3_Native_Track_ARM64.tar.gz
