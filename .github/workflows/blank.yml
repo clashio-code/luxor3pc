@@ -1,36 +1,39 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
-
-# Controls when the workflow will run
+name: Build Luxor 3 native track prototype (ARM64)
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+  push:
+    paths:
+      - '**.c'
+      - 'CMakeLists.txt'
+      - '.github/workflows/build-arm64.yml'
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    runs-on: ubuntu-24.04
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Enable ARM64 packages
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          sudo dpkg --add-architecture arm64
+          sudo sed -i 's/^URIs: http/URIs: http/' /etc/apt/sources.list.d/ubuntu.sources || true
+          sudo apt-get update
+          sudo apt-get install -y cmake pkg-config gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libsdl2-dev:arm64 libgles2-mesa-dev:arm64
+      - name: Configure and build
+        run: |
+          cmake -S . -B build-arm64 -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc
+          cmake --build build-arm64 --parallel 2
+          file build-arm64/luxor3_native_track
+      - name: Package test build
+        run: |
+          mkdir -p package/assets
+          cp build-arm64/luxor3_native_track package/
+          cp run.sh package/
+          cp assets/path.LX3TRK package/assets/
+          cp README.md package/
+          tar -czf Luxor3_Native_Track_ARM64.tar.gz -C package .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Luxor3_Native_Track_ARM64
+          path: Luxor3_Native_Track_ARM64.tar.gz
