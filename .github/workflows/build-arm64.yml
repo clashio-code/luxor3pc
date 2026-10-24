@@ -22,3 +22,17 @@ jobs:
 
       - name: Compile
         run: cmake --build build --parallel 2
+
+      - name: Package build
+        run: |
+          mkdir -p release
+          cp -a build/. release/
+          tar -czf luxor3-prototype-linux.tar.gz -C release .
+
+      - name: Upload downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: luxor3-prototype-build
+          path: luxor3-prototype-linux.tar.gz
+          if-no-files-found: error
+          retention-days: 7
