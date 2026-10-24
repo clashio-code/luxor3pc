@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(luxor3_native_track C)
+set(CMAKE_C_STANDARD 11)
+find_package(SDL2 REQUIRED)
+find_library(GLESV2_LIBRARY GLESv2 REQUIRED)
+add_executable(luxor3_native_track src/main.c)
+target_include_directories(luxor3_native_track PRIVATE ${SDL2_INCLUDE_DIRS})
+target_link_libraries(luxor3_native_track PRIVATE ${SDL2_LIBRARIES} ${GLESV2_LIBRARY} m)

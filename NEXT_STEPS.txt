@@ -1,0 +1,4 @@
+STATUS: source prototype prepared; not compiled or tested on RG40XXV.
+NEXT: run GitHub Actions ARM64 build, install in a separate SD-card folder, launch run.sh, send luxor3_native_track.log.
+Success gate: track parser reports nonzero vertices/sections and SDL/GLES reports renderer/version.
+If failure: use exact log before changing renderer or game code. Do not guess renderer config/registry keys in Luxor3.exe.
